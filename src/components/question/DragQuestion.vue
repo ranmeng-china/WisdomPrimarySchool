@@ -19,10 +19,9 @@ const mappings = computed({
   set: (val) => emit('update:modelValue', val)
 });
 
-// Click-to-move interaction helper
 const selectOption = (opt: string) => {
   if (selectedOption.value === opt) {
-    selectedOption.value = null; // deselect
+    selectedOption.value = null;
   } else {
     selectedOption.value = opt;
   }
@@ -33,7 +32,7 @@ const assignToTarget = (targetName: string) => {
     const updated = { ...mappings.value };
     updated[selectedOption.value] = targetName;
     mappings.value = updated;
-    selectedOption.value = null; // reset
+    selectedOption.value = null;
   }
 };
 
@@ -43,7 +42,6 @@ const removeMapping = (opt: string) => {
   mappings.value = Object.keys(updated).length > 0 ? updated : null;
 };
 
-// Drag and drop HTML5 APIs
 const onDragStart = (evt: DragEvent, opt: string) => {
   if (evt.dataTransfer) {
     evt.dataTransfer.setData('text/plain', opt);
@@ -72,6 +70,12 @@ const unassignedOptions = computed(() => {
   const assigned = Object.keys(mappings.value);
   return allOpts.filter(o => !assigned.includes(o));
 });
+
+const isEmojiOnly = (str: string): boolean => {
+  const emojiRegex = /^[\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff\uFE0F\s]+$/;
+  const cleanStr = str.replace(/<[^>]+>/g, '').trim();
+  return cleanStr !== '' && emojiRegex.test(cleanStr);
+};
 </script>
 
 <template>
@@ -79,7 +83,6 @@ const unassignedOptions = computed(() => {
     <div class="question-stem" v-html="question.stem"></div>
     <p class="drag-tip">提示：点选下方卡片，再点击分类框；或者直接拖拽卡片。</p>
 
-    <!-- Targets dropzones -->
     <div class="targets-container">
       <div
         v-for="target in question.assets?.targets || []"
@@ -89,7 +92,7 @@ const unassignedOptions = computed(() => {
         @drop="onDrop($event, target)"
         @click="assignToTarget(target)"
       >
-        <h3 class="target-title">{{ target }}</h3>
+        <h3 class="target-title" v-html="target"></h3>
         <div class="target-slot">
           <div
             v-for="item in getItemsInTarget(target)"
@@ -97,14 +100,13 @@ const unassignedOptions = computed(() => {
             class="placed-card animate-pop-in"
             @click.stop="removeMapping(item)"
           >
-            {{ item }}
+            <span :class="{ 'is-emoji': isEmojiOnly(item) }" v-html="item"></span>
             <span class="remove-icon">×</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Options pool -->
     <div class="options-pool">
       <div
         v-for="opt in unassignedOptions"
@@ -115,7 +117,7 @@ const unassignedOptions = computed(() => {
         @dragstart="onDragStart($event, opt)"
         @click="selectOption(opt)"
       >
-        {{ opt }}
+        <span :class="{ 'is-emoji': isEmojiOnly(opt) }" v-html="opt"></span>
       </div>
     </div>
   </div>
@@ -218,6 +220,9 @@ const unassignedOptions = computed(() => {
   box-shadow: 0 4px 0 var(--color-warning-dark);
   transition: transform 0.1s;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .draggable-card:active {
@@ -247,5 +252,20 @@ const unassignedOptions = computed(() => {
   font-weight: bold;
   font-size: 16px;
   color: white;
+}
+
+.is-emoji {
+  font-size: 38px;
+  line-height: 1;
+}
+
+:deep(ruby) {
+  ruby-position: over;
+  font-size: 16px;
+}
+
+:deep(rt) {
+  font-size: 10px;
+  color: var(--color-text-light);
 }
 </style>

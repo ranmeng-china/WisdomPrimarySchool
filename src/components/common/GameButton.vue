@@ -28,16 +28,18 @@ const handleStart = () => {
   isPressed.value = true;
 };
 
-const handleEnd = (e: Event) => {
+const handleEnd = () => {
   if (props.disabled) return;
-  if (isPressed.value) {
-    isPressed.value = false;
-    emit('click', e);
-  }
+  isPressed.value = false;
 };
 
 const handleLeave = () => {
   isPressed.value = false;
+};
+
+const handleClick = (e: Event) => {
+  if (props.disabled) return;
+  emit('click', e);
 };
 </script>
 
@@ -51,6 +53,7 @@ const handleLeave = () => {
     @mousedown="handleStart"
     @mouseup="handleEnd"
     @mouseleave="handleLeave"
+    @click="handleClick"
   >
     <span class="btn-inner">
       <slot />

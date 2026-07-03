@@ -23,7 +23,6 @@ const mappings = computed({
   set: (val) => emit('update:modelValue', val)
 });
 
-// To compute SVG line positions dynamically
 const containerRef = ref<HTMLElement | null>(null);
 const leftItemRefs = ref<Record<string, HTMLElement>>({});
 const rightItemRefs = ref<Record<string, HTMLElement>>({});
@@ -70,7 +69,6 @@ const selectRight = (item: string) => {
 const checkAndMatch = () => {
   if (selectedLeft.value && selectedRight.value) {
     const updated = { ...mappings.value };
-    // Clear any existing connection for this left item or right item to guarantee 1-to-1 match
     Object.entries(updated).forEach(([k, v]) => {
       if (v === selectedRight.value) {
         delete updated[k];
@@ -93,7 +91,6 @@ const removeMapping = (left: string) => {
 };
 
 const getLineCoordinates = computed(() => {
-  // Read forceUpdateVal to reactive trigger
   const _ = forceUpdateVal.value;
 
   if (!containerRef.value) return [];
@@ -109,11 +106,9 @@ const getLineCoordinates = computed(() => {
       const leftRect = leftEl.getBoundingClientRect();
       const rightRect = rightEl.getBoundingClientRect();
 
-      // Right side of left element, relative to container
       const fromX = leftRect.right - containerRect.left;
       const fromY = leftRect.top + leftRect.height / 2 - containerRect.top;
 
-      // Left side of right element, relative to container
       const toX = rightRect.left - containerRect.left;
       const toY = rightRect.top + rightRect.height / 2 - containerRect.top;
 
@@ -131,6 +126,12 @@ const setLeftRef = (el: any, key: string) => {
 const setRightRef = (el: any, key: string) => {
   if (el) rightItemRefs.value[key] = el.$el || el;
 };
+
+const isEmojiOnly = (str: string): boolean => {
+  const emojiRegex = /^[\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff\uFE0F\s]+$/;
+  const cleanStr = str.replace(/<[^>]+>/g, '').trim();
+  return cleanStr !== '' && emojiRegex.test(cleanStr);
+};
 </script>
 
 <template>
@@ -139,7 +140,6 @@ const setRightRef = (el: any, key: string) => {
     <p class="match-tip">提示：点击左边一张卡片，再点击右边一张卡片进行连线。</p>
 
     <div ref="containerRef" class="match-columns-container">
-      <!-- SVG overlay for connections -->
       <svg class="connections-svg">
         <line
           v-for="line in getLineCoordinates"
@@ -153,21 +153,19 @@ const setRightRef = (el: any, key: string) => {
         />
       </svg>
 
-      <!-- Left Column -->
       <div class="match-column left-column">
         <GameButton
           v-for="item in leftItems"
           :key="item"
           :ref="(el) => setLeftRef(el, item)"
           :type="selectedLeft === item ? 'success' : mappings[item] ? 'primary' : 'default'"
-          class="match-card animate-pulse"
+          class="match-card"
           @click="selectLeft(item)"
         >
-          {{ item }}
+          <span :class="{ 'is-emoji': isEmojiOnly(item) }" v-html="item"></span>
         </GameButton>
       </div>
 
-      <!-- Right Column -->
       <div class="match-column right-column">
         <GameButton
           v-for="item in rightItems"
@@ -177,7 +175,7 @@ const setRightRef = (el: any, key: string) => {
           class="match-card"
           @click="selectRight(item)"
         >
-          {{ item }}
+          <span :class="{ 'is-emoji': isEmojiOnly(item) }" v-html="item"></span>
         </GameButton>
       </div>
     </div>
@@ -223,7 +221,7 @@ const setRightRef = (el: any, key: string) => {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: auto; /* Allow line clicks to remove them */
+  pointer-events: auto;
   z-index: 1;
 }
 
@@ -245,7 +243,7 @@ const setRightRef = (el: any, key: string) => {
   flex-direction: column;
   gap: 20px;
   flex: 1;
-  z-index: 2; /* Position buttons above SVG lines */
+  z-index: 2;
 }
 
 .match-card {
@@ -257,5 +255,20 @@ const setRightRef = (el: any, key: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.is-emoji {
+  font-size: 38px;
+  line-height: 1;
+}
+
+:deep(ruby) {
+  ruby-position: over;
+  font-size: 18px;
+}
+
+:deep(rt) {
+  font-size: 11px;
+  color: var(--color-text-light);
 }
 </style>

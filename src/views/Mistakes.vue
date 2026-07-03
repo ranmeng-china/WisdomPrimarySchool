@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProgressStore } from '../stores/progress';
 import { usePetStore } from '../stores/pet';
 import { questions, modulesList } from '../data/questions';
 import { judgeAnswer } from '../utils/judgeHelper';
+import { speakText } from '../utils/speechHelper';
 import GameButton from '../components/common/GameButton.vue';
+import PetCompanion from '../components/common/PetCompanion.vue';
 
 // Import components
 import ChoiceQuestion from '../components/question/ChoiceQuestion.vue';
@@ -29,16 +31,40 @@ const practiceAnswer = ref<any>(null);
 const practiceChecked = ref(false);
 const practiceIsCorrect = ref(false);
 
+const petMood = ref<'idle' | 'happy' | 'sad' | 'cheer'>('cheer');
+const petSpeech = ref('');
+let idleTimer: any = null;
+
+const resetIdleTimer = () => {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    petMood.value = 'idle';
+    petSpeech.value = '<ruby>小<rt>xiǎo</rt>主<rt>zhǔ</rt>人<rt>rén</rt></ruby>，<ruby>这<rt>zhè</rt>题<rt>tí</rt>很<rt>hěn</rt>简<rt>jiǎn</rt>单<rt>dān</rt>的<rt>de</rt></ruby>，<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！🐾';
+  }, 12000);
+};
+
+const updatePet = (mood: 'idle' | 'happy' | 'sad' | 'cheer', text: string) => {
+  petMood.value = mood;
+  petSpeech.value = text;
+  resetIdleTimer();
+};
+
 onMounted(() => {
   progressStore.loadFromStorage();
   petStore.loadFromStorage();
+});
+
+onUnmounted(() => {
+  if (idleTimer) clearTimeout(idleTimer);
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
 });
 
 const getQuestionObj = (qId: string) => {
   return questions.find(q => q.id === qId);
 };
 
-// Filtered mistake list
 const filteredMistakes = computed(() => {
   const records = progressStore.mistakes;
   if (filterModule.value === 'all') {
@@ -47,10 +73,16 @@ const filteredMistakes = computed(() => {
   return records.filter(r => r.moduleId === filterModule.value);
 });
 
+const speakPracticeQuestion = () => {
+  const q = practiceQueue.value[currentPracticeIndex.value];
+  if (q) {
+    speakText(q.stem);
+  }
+};
+
 const startPractice = () => {
   if (filteredMistakes.value.length === 0) return;
 
-  // Draw up to 5 questions
   const list = [...filteredMistakes.value]
     .sort(() => Math.random() - 0.5)
     .slice(0, 5)
@@ -64,6 +96,10 @@ const startPractice = () => {
     practiceChecked.value = false;
     practiceIsCorrect.value = false;
     isPracticeMode.value = true;
+    updatePet('cheer', '<ruby>小<rt>xiǎo</rt>主<rt>zhǔ</rt>人<rt>rén</rt></ruby>，<ruby>我<rt>wǒ</rt>们<rt>men</rt>来<rt>lái</rt>消<rt>xiāo</rt>灭<rt>miè</rt>错<rt>cuò</rt>题<rt>tí</rt>吧<rt>ba</rt></ruby>！🐾');
+    setTimeout(() => {
+      speakPracticeQuestion();
+    }, 200);
   }
 };
 
@@ -75,16 +111,17 @@ const checkPracticeAnswer = () => {
   practiceChecked.value = true;
   practiceIsCorrect.value = correct;
 
-  // Record answer results in store
   progressStore.recordAnswer(q.moduleId, q.id, q.levelId, correct, practiceAnswer.value, q.answer);
 
   if (correct) {
-    petStore.addExp(5); // slight exp reward
+    petStore.addExp(5);
+    updatePet('happy', '<ruby>消<rt>xiāo</rt>灭<rt>miè</rt></ruby>了<ruby>一<rt>yī</rt>道<rt>dào</rt>错<rt>cuò</rt>题<rt>tí</rt></ruby>！🎉');
     setTimeout(() => {
       nextPracticeQuestion();
-    }, 1500);
+    }, 2000);
   } else {
-    petStore.deductExp(2); // slight exp loss or shield trigger
+    petStore.deductExp(2);
+    updatePet('sad', '<ruby>没<rt>méi</rt>关<rt>guān</rt>系<rt>xi</rt></ruby>，<ruby>再<rt>zài</rt>练<rt>liàn</rt>习<rt>xí</rt>一<rt>yī</rt>次<rt>cì</rt></ruby>！💡');
   }
 };
 
@@ -95,10 +132,13 @@ const nextPracticeQuestion = () => {
 
   if (currentPracticeIndex.value < practiceQueue.value.length - 1) {
     currentPracticeIndex.value += 1;
+    updatePet('cheer', '<ruby>下<rt>xià</rt>一<rt>yī</rt>题<rt>tí</rt>来<rt>lái</rt>啦<rt>la</rt></ruby>！✨');
+    setTimeout(() => {
+      speakPracticeQuestion();
+    }, 200);
   } else {
-    // End practice
     isPracticeMode.value = false;
-    progressStore.loadFromStorage(); // reload changes
+    progressStore.loadFromStorage();
   }
 };
 
@@ -111,6 +151,7 @@ const tryAgainPractice = () => {
   practiceChecked.value = false;
   practiceIsCorrect.value = false;
   practiceAnswer.value = null;
+  updatePet('cheer', '<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！<ruby>再<rt>zài</rt>试<rt>shì</rt>一<rt>yī</rt>次<rt>cì</rt></ruby>！🐾');
 };
 </script>
 
@@ -127,13 +168,18 @@ const tryAgainPractice = () => {
     </header>
 
     <main class="mistakes-main">
-      <!-- Practice Session Mode -->
       <div v-if="isPracticeMode && practiceQueue[currentPracticeIndex]" class="practice-session-wrapper">
         <div class="practice-progress-bar">
           练习中: {{ currentPracticeIndex + 1 }} / {{ practiceQueue.length }}
         </div>
 
         <div class="play-main card animate-pop-in">
+          <div class="speak-btn-container" style="width: 100%; display: flex; justify-content: flex-end; margin-bottom: 10px; margin-top: -10px;">
+            <GameButton type="success" size="sm" class="speak-btn" style="border-width: 3px !important; font-size: 14px;" @click="speakPracticeQuestion">
+              🔊 <ruby>听<rt>tīng</rt>题<rt>tí</rt></ruby>
+            </GameButton>
+          </div>
+
           <component
             :is="
               practiceQueue[currentPracticeIndex].type === 'choice' ? ChoiceQuestion :
@@ -167,14 +213,19 @@ const tryAgainPractice = () => {
             size="lg"
             class="check-btn"
             :disabled="practiceAnswer === null || practiceAnswer === undefined"
-            @click="checkAnswer"
+            @click="checkPracticeAnswer"
           >
             检查答案 🔍
           </GameButton>
         </div>
+
+        <PetCompanion 
+          :pet-type="petStore.pet.chosenPet || 'cat'"
+          :mood="petMood"
+          :speech="petSpeech"
+        />
       </div>
 
-      <!-- Main Mistake Book Display -->
       <div v-else class="mistakes-list-wrapper">
         <div class="filter-controls card">
           <div class="filter-group">
@@ -212,6 +263,14 @@ const tryAgainPractice = () => {
               <span class="meta-tag">{{ getQuestionObj(rec.questionId)?.type === 'choice' ? '选择题' : '填空题' }}</span>
               <span class="meta-tag times-tag">做错 {{ rec.mistakeCount }} 次</span>
               <span class="meta-tag master-tag">掌握进度 {{ rec.masteredCount }}/2</span>
+              <GameButton 
+                type="success" 
+                size="sm" 
+                style="margin-left: auto; height: 28px; padding: 2px 8px; border-width: 2px !important; font-size: 13px;" 
+                @click="getQuestionObj(rec.questionId) && speakText(getQuestionObj(rec.questionId)!.stem)"
+              >
+                🔊 听题
+              </GameButton>
             </div>
             
             <div class="mistake-question-stem" v-html="getQuestionObj(rec.questionId)?.stem"></div>
@@ -322,6 +381,7 @@ const tryAgainPractice = () => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .meta-tag {
@@ -403,6 +463,7 @@ const tryAgainPractice = () => {
   min-height: 300px;
   padding: 30px;
   border-width: 4px;
+  position: relative;
 }
 
 .play-footer {

@@ -20,6 +20,12 @@ const selected = computed({
 const selectOption = (opt: string) => {
   selected.value = opt;
 };
+
+const isEmojiOnly = (str: string): boolean => {
+  const emojiRegex = /^[\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff\uFE0F\s]+$/;
+  const cleanStr = str.replace(/<[^>]+>/g, '').trim();
+  return cleanStr !== '' && emojiRegex.test(cleanStr);
+};
 </script>
 
 <template>
@@ -50,7 +56,7 @@ const selectOption = (opt: string) => {
         class="option-card"
         @click="selectOption(opt)"
       >
-        <span class="option-text">{{ opt }}</span>
+        <span class="option-text" :class="{ 'is-emoji': isEmojiOnly(opt) }" v-html="opt"></span>
       </GameButton>
     </div>
   </div>
@@ -129,5 +135,10 @@ const selectOption = (opt: string) => {
 
 .option-text {
   font-size: 22px;
+}
+
+.option-text.is-emoji {
+  font-size: 42px;
+  line-height: 1;
 }
 </style>

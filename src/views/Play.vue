@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProgressStore } from '../stores/progress';
 import { usePetStore } from '../stores/pet';
 import { useWalletStore } from '../stores/wallet';
 import { getQuestionsByLevel, levelsList } from '../data/questions';
 import { judgeAnswer } from '../utils/judgeHelper';
+import { speakText } from '../utils/speechHelper';
 import ProgressBar from '../components/common/ProgressBar.vue';
 import GameButton from '../components/common/GameButton.vue';
 import StarRating from '../components/common/StarRating.vue';
 import DialogModal from '../components/common/DialogModal.vue';
+import PetCompanion from '../components/common/PetCompanion.vue';
 
-// Import components
 import ChoiceQuestion from '../components/question/ChoiceQuestion.vue';
 import FillQuestion from '../components/question/FillQuestion.vue';
 import DragQuestion from '../components/question/DragQuestion.vue';
@@ -39,19 +40,41 @@ const isCorrect = ref(false);
 const errorCount = ref(0);
 const levelMistakesMap = ref<Record<string, boolean>>({});
 
-// Dialog overlays
 const showQuitDialog = ref(false);
 const showResultDialog = ref(false);
 const earnedCoins = ref(0);
 const earnedExp = ref(0);
 const calculatedStars = ref(0);
 
-// Shield feedback
 const shieldTriggered = ref(false);
+
+const petMood = ref<'idle' | 'happy' | 'sad' | 'cheer'>('cheer');
+const petSpeech = ref('');
+let idleTimer: any = null;
 
 const currentQuestion = computed(() => {
   return levelQuestions.value[currentIndex.value] || null;
 });
+
+const resetIdleTimer = () => {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    petMood.value = 'idle';
+    petSpeech.value = '<ruby>小<rt>xiǎo</rt>主<rt>zhǔ</rt>人<rt>rén</rt></ruby>，<ruby>这<rt>zhè</rt>题<rt>tí</rt>很<rt>hěn</rt>简<rt>jiǎn</rt>单<rt>dān</rt>的<rt>de</rt></ruby>，<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！🐾';
+  }, 12000);
+};
+
+const updatePet = (mood: 'idle' | 'happy' | 'sad' | 'cheer', text: string) => {
+  petMood.value = mood;
+  petSpeech.value = text;
+  resetIdleTimer();
+};
+
+const speakCurrentQuestion = () => {
+  if (currentQuestion.value) {
+    speakText(currentQuestion.value.stem);
+  }
+};
 
 const loadLevel = () => {
   const allQs = getQuestionsByLevel(levelId.value);
@@ -62,6 +85,11 @@ const loadLevel = () => {
   isCorrect.value = false;
   errorCount.value = 0;
   levelMistakesMap.value = {};
+  
+  updatePet('cheer', '<ruby>小<rt>xiǎo</rt>主<rt>zhǔ</rt>人<rt>rén</rt></ruby>，<ruby>我<rt>wǒ</rt>们<rt>men</rt>一<rt>yī</rt>起<rt>qǐ</rt>加<rt>jiā</rt>油<rt>yóu</rt>闯<rt>chuǎng</rt>关<rt>guān</rt>吧<rt>ba</rt></ruby>！🐾');
+  setTimeout(() => {
+    speakCurrentQuestion();
+  }, 200);
 };
 
 onMounted(() => {
@@ -70,6 +98,13 @@ onMounted(() => {
   walletStore.syncFromPetStore();
   settingsStore.loadSettings();
   loadLevel();
+});
+
+onUnmounted(() => {
+  if (idleTimer) clearTimeout(idleTimer);
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
 });
 
 const handleQuit = () => {
@@ -88,7 +123,6 @@ const checkAnswer = () => {
   isCorrect.value = correct;
 
   if (correct) {
-    // Correct logic
     progressStore.recordAnswer(
       currentQuestion.value.moduleId,
       currentQuestion.value.id,
@@ -96,7 +130,6 @@ const checkAnswer = () => {
       true
     );
 
-    // If they never made a mistake on this question in this session, reward them full
     if (!levelMistakesMap.value[currentQuestion.value.id]) {
       earnedCoins.value += 10;
       earnedExp.value += 10;
@@ -104,12 +137,12 @@ const checkAnswer = () => {
       walletStore.addEarnings(10);
     }
 
-    // Auto next question after 1.5s
+    updatePet('happy', '<ruby>太<rt>tài</rt>棒<rt>bàng</rt>啦<rt>la</rt></ruby>！<ruby>答<rt>dá</rt>对<rt>duì</rt>啦<rt>la</rt></ruby>！🎉');
+
     setTimeout(() => {
       nextQuestion();
-    }, 1500);
+    }, 2000);
   } else {
-    // Incorrect logic
     errorCount.value += 1;
     levelMistakesMap.value[currentQuestion.value.id] = true;
     
@@ -122,12 +155,13 @@ const checkAnswer = () => {
       currentQuestion.value.answer
     );
 
-    // Exp deduction and shield check
     const currentShields = petStore.pet.shieldCount;
     petStore.deductExp(5);
     if (currentShields > 0 && petStore.pet.shieldCount < currentShields) {
       shieldTriggered.value = true;
     }
+
+    updatePet('sad', '<ruby>没<rt>méi</rt>关<rt>guān</rt>系<rt>xi</rt></ruby>，<ruby>再<rt>zài</rt>想<rt>xiǎng</rt>一<rt>yī</rt>想<rt>xiǎng</rt>哦<rt>o</rt></ruby>！💡');
   }
 };
 
@@ -139,8 +173,11 @@ const nextQuestion = () => {
 
   if (currentIndex.value < levelQuestions.value.length - 1) {
     currentIndex.value += 1;
+    updatePet('cheer', '<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！<ruby>下<rt>xià</rt>一<rt>yī</rt>题<rt>tí</rt>来<rt>lái</rt>啦<rt>la</rt></ruby>！✨');
+    setTimeout(() => {
+      speakCurrentQuestion();
+    }, 200);
   } else {
-    // Completed level
     finishLevel();
   }
 };
@@ -154,9 +191,9 @@ const finishLevel = () => {
   }
   calculatedStars.value = stars;
 
-  // Record completion
   progressStore.recordLevelCompletion(levelId.value, stars);
   showResultDialog.value = true;
+  updatePet('happy', '<ruby>太<rt>tài</rt>厉<rt>lì</rt>害<rt>hai</rt>啦<rt>la</rt></ruby>，<ruby>我<rt>wǒ</rt>们<rt>men</rt>通<rt>tōng</rt>关<rt>guān</rt>了<rt>le</rt></ruby>！🏆');
 };
 
 const retryLevel = () => {
@@ -188,12 +225,12 @@ const tryAgainOnCurrent = () => {
   isCorrect.value = false;
   shieldTriggered.value = false;
   userAnswer.value = null;
+  updatePet('cheer', '<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！<ruby>再<rt>zài</rt>试<rt>shì</rt>一<rt>yī</rt>次<rt>cì</rt></ruby>！🐾');
 };
 </script>
 
 <template>
   <div class="play-container game-container" v-if="currentQuestion">
-    <!-- Header panel -->
     <header class="play-header">
       <GameButton type="danger" size="sm" @click="handleQuit">退出</GameButton>
       <div class="progress-wrapper">
@@ -206,8 +243,13 @@ const tryAgainOnCurrent = () => {
       </div>
     </header>
 
-    <!-- Question container -->
     <main class="play-main card animate-pop-in">
+      <div class="speak-btn-container">
+        <GameButton type="success" size="sm" class="speak-btn" @click="speakCurrentQuestion">
+          🔊 <ruby>听<rt>tīng</rt>题<rt>tí</rt></ruby>
+        </GameButton>
+      </div>
+
       <component
         :is="
           currentQuestion.type === 'choice' ? ChoiceQuestion :
@@ -221,15 +263,12 @@ const tryAgainOnCurrent = () => {
       />
     </main>
 
-    <!-- Feedback and Control bar -->
     <footer class="play-footer">
-      <!-- Correct state -->
       <div v-if="checked && isCorrect" class="feedback-toast is-success animate-pop-in">
         <span class="toast-icon">✨</span>
         <span class="toast-message">太棒了！答对啦！</span>
       </div>
 
-      <!-- Wrong state -->
       <div v-if="checked && !isCorrect" class="feedback-toast is-danger animate-pop-in">
         <span class="toast-icon">💡</span>
         <div class="toast-details">
@@ -239,7 +278,6 @@ const tryAgainOnCurrent = () => {
         <GameButton type="warning" size="sm" @click="tryAgainOnCurrent">修改答案</GameButton>
       </div>
 
-      <!-- Next / Check control button -->
       <GameButton
         v-if="!checked"
         type="primary"
@@ -252,7 +290,12 @@ const tryAgainOnCurrent = () => {
       </GameButton>
     </footer>
 
-    <!-- Quit Confirmation Dialog -->
+    <PetCompanion 
+      :pet-type="petStore.pet.chosenPet || 'cat'"
+      :mood="petMood"
+      :speech="petSpeech"
+    />
+
     <DialogModal :show="showQuitDialog" title="退出确认">
       <p class="dialog-body-text">确认要退出本次闯关吗？进度不会被保存哦。</p>
       <template #footer>
@@ -261,7 +304,6 @@ const tryAgainOnCurrent = () => {
       </template>
     </DialogModal>
 
-    <!-- Level Completion Settlement Dialog -->
     <DialogModal :show="showResultDialog" title="闯关成功！" class="result-dialog">
       <div class="result-dialog-content">
         <div class="stars-earned-wrapper">
@@ -295,7 +337,7 @@ const tryAgainOnCurrent = () => {
   justify-content: flex-start;
   gap: 20px;
   min-height: 100vh;
-  padding-bottom: 40px;
+  padding-bottom: 120px;
 }
 
 .play-header {
@@ -342,8 +384,23 @@ const tryAgainOnCurrent = () => {
   padding: 30px;
   border-width: 4px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.speak-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  margin-top: -10px;
+}
+
+.speak-btn {
+  border-width: 3px !important;
+  font-size: 14px;
 }
 
 .play-footer {
