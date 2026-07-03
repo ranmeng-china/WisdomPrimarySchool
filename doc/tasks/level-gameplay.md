@@ -1,0 +1,11 @@
+# 关卡地图与答题闯关主流程任务列表 (Level Map & Core Gameplay)
+
+- [x] 实现游戏首页视图 [Home.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/views/Home.vue) (背景、卡通入口、继续上次闯关按钮)
+- [x] 实现关卡地图页面 [LevelMap.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/views/LevelMap.vue) (按启航岛、数字岛等核心模块展示，支持关卡置灰解锁及星级呈现)
+- [x] 实现关卡详情面板 [LevelDetail.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/views/LevelDetail.vue) (预计题量、难度展示、开始按钮)
+- [x] 搭建答题页面骨架 [Play.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/views/Play.vue) (答题进度条、题目切换、退出确认、金币增加动画)
+- [x] 开发选择题组件 [ChoiceQuestion.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/components/question/ChoiceQuestion.vue) (大字号卡片、触摸点击动效)
+- [x] 开发填空题组件 [FillQuestion.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/components/question/FillQuestion.vue) (符合儿童心智的数字软键盘或数字卡片填入)
+- [x] 开发拖拽题组件 [DragQuestion.vue](file:///Users/xudeping/Documents/MyProjects/小学趣味数学/src/components/question/DragQuestion.vue) (支持 HTML5 Drag & Drop 或 Touch 事件的物理卡片拖曳)
+- [x] 实现即时判题与答题反馈机制 (答对庆祝动画与音效，答错展示引导提示、二次修改机会、免错盾牌消耗)
+- [x] 实现关卡结算卡片 (三星奖励计算、金币/经验累加动画、下一步推荐提示)
