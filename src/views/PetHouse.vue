@@ -6,6 +6,7 @@ import { usePetStore } from '../stores/pet';
 import { useWalletStore } from '../stores/wallet';
 import GameButton from '../components/common/GameButton.vue';
 import ProgressBar from '../components/common/ProgressBar.vue';
+import PetCompanion from '../components/common/PetCompanion.vue';
 
 const router = useRouter();
 const progressStore = useProgressStore();
@@ -128,6 +129,13 @@ const buyShopItem = (item: typeof shopItems[0]) => {
     alert('金币不够哦，快去答题赚钱吧！');
   }
 };
+
+const petSpeech = computed(() => {
+  if (petAnimation.value === 'bath') return '正在洗香香中... 🛀';
+  if (petAnimation.value === 'happy') return '喵呜~ 好舒服！(exp+2)';
+  if (petStore.pet.satiety < 40) return '肚子咕噜噜，想吃苹果啦 🍎';
+  return '你好呀，我们今天一起学数学吧！';
+});
 </script>
 
 <template>
@@ -151,21 +159,17 @@ const buyShopItem = (item: typeof shopItems[0]) => {
 
         <!-- Animated pet wrapper -->
         <div 
-          class="pet-avatar-character animate-bounce" 
-          :class="[petAnimation, petStore.pet.chosenPet]" 
+          class="pet-avatar-character" 
           @click="handlePetClick"
         >
-          <!-- Cartoon Face / CSS shapes -->
-          <div class="character-inner">
-            <span class="character-emoji">{{ petStore.pet.chosenPet === 'cat' ? '🐱' : '🐶' }}</span>
-            <div v-if="petAnimation === 'bath'" class="soap-bubbles">🧼🫧💧</div>
-          </div>
+          <PetCompanion
+            :pet-type="petStore.pet.chosenPet || 'cat'"
+            :mood="petAnimation === 'bath' ? 'idle' : (petAnimation === 'happy' ? 'happy' : 'idle')"
+            :speech="petSpeech"
+            inline
+          />
+          <div v-if="petAnimation === 'bath'" class="soap-bubbles">🧼🫧💧</div>
         </div>
-
-        <div class="pet-speech-bubble" v-if="petAnimation === 'bath'">正在洗香香中... 🛀</div>
-        <div class="pet-speech-bubble" v-else-if="petAnimation === 'happy'">喵呜~ 好舒服！(exp+2)</div>
-        <div class="pet-speech-bubble" v-else-if="petStore.pet.satiety < 40">肚子咕噜噜，想吃苹果啦 🍎</div>
-        <div class="pet-speech-bubble" v-else>你好呀，我们今天一起学数学吧！</div>
       </div>
 
       <!-- Gauges & Privileges -->
@@ -359,11 +363,13 @@ const buyShopItem = (item: typeof shopItems[0]) => {
 .pet-avatar-character {
   cursor: pointer;
   width: 130px;
-  height: 130px;
+  height: 180px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   user-select: none;
+  position: relative;
 }
 
 .character-inner {
@@ -571,5 +577,44 @@ const buyShopItem = (item: typeof shopItems[0]) => {
 .close-modal-btn {
   width: 100%;
   max-width: 150px;
+}
+
+@media (max-width: 600px) {
+  .house-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .house-title {
+    font-size: 18px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .house-currency {
+    font-size: 13px;
+    padding: 4px 8px;
+    border-width: 2px;
+  }
+  .gauge-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .gauge-group.full-width {
+    grid-column: span 1;
+  }
+  .interaction-bar {
+    gap: 8px;
+  }
+  .interaction-bar button {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 100px;
+    font-size: 14px;
+    padding: 10px 8px;
+  }
+  /* For five buttons, let the last button be full width if we want, or just let flexbox handle it */
+  .interaction-bar button:last-child {
+    flex: 1 1 100%;
+  }
 }
 </style>

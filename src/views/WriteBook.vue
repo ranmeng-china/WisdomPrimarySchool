@@ -381,8 +381,9 @@ const selectTab = (tabId: 'digits' | 'formulas' | 'units') => {
 
 .calligraphy-canvas-wrapper {
   position: relative;
-  width: 320px;
-  height: 320px;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
   border: 4px solid var(--color-text);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-md);
@@ -481,5 +482,38 @@ const selectTab = (tabId: 'digits' | 'formulas' | 'units') => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 600px) {
+  .book-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .book-title {
+    font-size: 20px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .tab-btn {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  .controls-panel {
+    gap: 8px;
+  }
+  .controls-panel button {
+    font-size: 13px;
+    padding: 8px 4px;
+  }
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 12px;
+  }
+  .gallery-item-card {
+    width: 90px;
+    height: 90px;
+  }
 }
 </style>

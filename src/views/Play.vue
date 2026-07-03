@@ -11,7 +11,6 @@ import ProgressBar from '../components/common/ProgressBar.vue';
 import GameButton from '../components/common/GameButton.vue';
 import StarRating from '../components/common/StarRating.vue';
 import DialogModal from '../components/common/DialogModal.vue';
-import PetCompanion from '../components/common/PetCompanion.vue';
 
 import ChoiceQuestion from '../components/question/ChoiceQuestion.vue';
 import FillQuestion from '../components/question/FillQuestion.vue';
@@ -48,27 +47,11 @@ const calculatedStars = ref(0);
 
 const shieldTriggered = ref(false);
 
-const petMood = ref<'idle' | 'happy' | 'sad' | 'cheer'>('cheer');
-const petSpeech = ref('');
-let idleTimer: any = null;
+const updatePet = (mood: 'idle' | 'happy' | 'sad' | 'cheer', text: string) => {};
 
 const currentQuestion = computed(() => {
   return levelQuestions.value[currentIndex.value] || null;
 });
-
-const resetIdleTimer = () => {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    petMood.value = 'idle';
-    petSpeech.value = '<ruby>小<rt>xiǎo</rt>主<rt>zhǔ</rt>人<rt>rén</rt></ruby>，<ruby>这<rt>zhè</rt>题<rt>tí</rt>很<rt>hěn</rt>简<rt>jiǎn</rt>单<rt>dān</rt>的<rt>de</rt></ruby>，<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！🐾';
-  }, 12000);
-};
-
-const updatePet = (mood: 'idle' | 'happy' | 'sad' | 'cheer', text: string) => {
-  petMood.value = mood;
-  petSpeech.value = text;
-  resetIdleTimer();
-};
 
 const speakCurrentQuestion = () => {
   if (currentQuestion.value) {
@@ -101,7 +84,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (idleTimer) clearTimeout(idleTimer);
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -289,12 +271,6 @@ const tryAgainOnCurrent = () => {
         检查答案 🔍
       </GameButton>
     </footer>
-
-    <PetCompanion 
-      :pet-type="petStore.pet.chosenPet || 'cat'"
-      :mood="petMood"
-      :speech="petSpeech"
-    />
 
     <DialogModal :show="showQuitDialog" title="退出确认">
       <p class="dialog-body-text">确认要退出本次闯关吗？进度不会被保存哦。</p>
@@ -501,5 +477,50 @@ const tryAgainOnCurrent = () => {
   font-size: 18px;
   font-weight: bold;
   color: var(--color-text);
+}
+
+@media (max-width: 600px) {
+  .play-container {
+    padding-bottom: 100px;
+    gap: 12px;
+  }
+  .play-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .progress-wrapper {
+    order: 3;
+    width: 100%;
+    margin: 4px 0 0 0;
+  }
+  .play-widgets {
+    gap: 6px;
+  }
+  .widget-item {
+    font-size: 13px;
+    padding: 2px 6px;
+    border-width: 2px;
+  }
+  .play-main {
+    padding: 20px 12px;
+    min-height: 280px;
+  }
+  .feedback-toast {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+  .toast-message {
+    font-size: 16px;
+  }
+  .toast-icon {
+    font-size: 24px;
+  }
+  .earnings-summary {
+    gap: 16px;
+    padding: 8px 16px;
+  }
+  .earning-row {
+    font-size: 15px;
+  }
 }
 </style>

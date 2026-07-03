@@ -372,4 +372,40 @@ const refundAll = () => {
   font-size: 14px;
   border-width: 2.5px;
 }
+
+@media (max-width: 600px) {
+  .exchange-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .exchange-title {
+    font-size: 20px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .exchange-workspace {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .coin-bag, .piggy-bank-box {
+    padding: 16px;
+  }
+  .coin-shape {
+    width: 60px;
+    height: 60px;
+    font-size: 16px;
+    border-width: 3px;
+  }
+  .paper-shape {
+    width: 80px;
+    height: 50px;
+    font-size: 16px;
+    border-width: 3px;
+  }
+  .bank-emoji {
+    font-size: 80px;
+  }
+}
 </style>

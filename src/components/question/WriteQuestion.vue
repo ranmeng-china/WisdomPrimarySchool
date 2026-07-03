@@ -219,8 +219,9 @@ const clearDrawing = () => {
 
 .canvas-wrapper {
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
   border: 5px solid var(--color-text);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-md);
@@ -254,5 +255,18 @@ const clearDrawing = () => {
 
 .canvas-controls button {
   min-width: 120px;
+}
+
+@media (max-width: 600px) {
+  .question-stem {
+    font-size: 20px;
+  }
+  .canvas-controls {
+    gap: 8px;
+  }
+  .canvas-controls button {
+    min-width: 100px;
+    font-size: 13px;
+  }
 }
 </style>

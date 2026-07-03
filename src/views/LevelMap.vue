@@ -228,4 +228,46 @@ const getLevelsByModule = (moduleId: string) => {
   cursor: not-allowed;
   opacity: 0.6;
 }
+
+@media (max-width: 600px) {
+  .map-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .map-title {
+    font-size: 20px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .header-stars {
+    font-size: 13px;
+    padding: 4px 8px;
+    border-width: 2px;
+  }
+  .island-name {
+    font-size: 20px;
+  }
+  .levels-path {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+  }
+  .level-node {
+    width: 120px;
+    padding: 6px;
+  }
+  .node-circle {
+    width: 52px;
+    height: 52px;
+    font-size: 18px;
+    border-width: 3px;
+  }
+  .level-name {
+    font-size: 14px;
+  }
+  .level-pinyin {
+    font-size: 9px;
+  }
+}
 </style>

@@ -7,7 +7,6 @@ import { questions, modulesList } from '../data/questions';
 import { judgeAnswer } from '../utils/judgeHelper';
 import { speakText } from '../utils/speechHelper';
 import GameButton from '../components/common/GameButton.vue';
-import PetCompanion from '../components/common/PetCompanion.vue';
 
 // Import components
 import ChoiceQuestion from '../components/question/ChoiceQuestion.vue';
@@ -31,23 +30,7 @@ const practiceAnswer = ref<any>(null);
 const practiceChecked = ref(false);
 const practiceIsCorrect = ref(false);
 
-const petMood = ref<'idle' | 'happy' | 'sad' | 'cheer'>('cheer');
-const petSpeech = ref('');
-let idleTimer: any = null;
-
-const resetIdleTimer = () => {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    petMood.value = 'idle';
-    petSpeech.value = '<ruby>小<rt>xiǎo</rt>主<rt>zhǔ</rt>人<rt>rén</rt></ruby>，<ruby>这<rt>zhè</rt>题<rt>tí</rt>很<rt>hěn</rt>简<rt>jiǎn</rt>单<rt>dān</rt>的<rt>de</rt></ruby>，<ruby>加<rt>jiā</rt>油<rt>yóu</rt></ruby>！🐾';
-  }, 12000);
-};
-
-const updatePet = (mood: 'idle' | 'happy' | 'sad' | 'cheer', text: string) => {
-  petMood.value = mood;
-  petSpeech.value = text;
-  resetIdleTimer();
-};
+const updatePet = (mood: 'idle' | 'happy' | 'sad' | 'cheer', text: string) => {};
 
 onMounted(() => {
   progressStore.loadFromStorage();
@@ -55,7 +38,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (idleTimer) clearTimeout(idleTimer);
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -218,12 +200,6 @@ const tryAgainPractice = () => {
             检查答案 🔍
           </GameButton>
         </div>
-
-        <PetCompanion 
-          :pet-type="petStore.pet.chosenPet || 'cat'"
-          :mood="petMood"
-          :speech="petSpeech"
-        />
       </div>
 
       <div v-else class="mistakes-list-wrapper">
@@ -508,5 +484,38 @@ const tryAgainPractice = () => {
 .toast-message {
   font-size: 18px;
   font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .mistakes-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .mistakes-title {
+    font-size: 20px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .filter-controls {
+    padding: 12px;
+    justify-content: center;
+    gap: 12px;
+  }
+  .play-main {
+    padding: 20px 12px;
+    min-height: 280px;
+  }
+  .feedback-toast {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+  .toast-message {
+    font-size: 15px;
+  }
+  .toast-icon {
+    font-size: 24px;
+  }
 }
 </style>

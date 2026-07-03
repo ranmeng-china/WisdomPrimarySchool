@@ -105,3 +105,19 @@ a {
 .animate-pulse {
   animation: pulse 1.5s infinite ease-in-out;
 }
+
+@media (max-width: 600px) {
+  .game-container {
+    padding: 10px;
+  }
+  .card {
+    padding: 16px;
+    border-width: 3px;
+  }
+  ruby {
+    font-size: inherit;
+  }
+  rt {
+    font-size: 0.55em;
+  }
+}

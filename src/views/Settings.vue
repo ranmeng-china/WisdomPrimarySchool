@@ -245,4 +245,35 @@ const performFullReset = () => {
   padding: 10px 0;
   font-weight: bold;
 }
+
+@media (max-width: 600px) {
+  .settings-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .settings-title {
+    font-size: 20px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .settings-main {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+  .toggle-wrapper button, .limit-btn {
+    height: 36px;
+    font-size: 13px;
+  }
+  .reset-danger-btn {
+    font-size: 16px;
+  }
+}
 </style>

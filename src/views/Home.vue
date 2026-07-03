@@ -380,6 +380,34 @@ const navigateTo = (path: string) => {
 @media (max-width: 600px) {
   .menu-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .game-title {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+  .pet-choose-section {
+    padding: 20px 16px;
+  }
+  .pet-selector {
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pet-option-card {
+    min-width: 100px;
+    padding: 12px;
+  }
+  .pet-big-avatar {
+    font-size: 48px;
+  }
+  .pet-name-section {
+    margin-bottom: 16px;
+  }
+  .menu-icon {
+    font-size: 32px;
+  }
+  .menu-label {
+    font-size: 15px;
   }
 }
 

@@ -492,4 +492,34 @@ const weakLevels = computed(() => {
   color: hsl(210, 20%, 35%);
   line-height: 1.4;
 }
+
+@media (max-width: 600px) {
+  .parents-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .parents-title {
+    font-size: 20px;
+    width: 100%;
+    order: 3;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .parent-lock-card {
+    padding: 20px 16px;
+  }
+  .lock-question {
+    font-size: 28px;
+    padding: 8px;
+    margin-bottom: 16px;
+  }
+  .lock-input-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .lock-input {
+    width: 100%;
+    max-width: 200px;
+  }
+}
 </style>

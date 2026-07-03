@@ -6,17 +6,19 @@ const props = withDefaults(
     petType?: 'cat' | 'dog';
     mood?: 'idle' | 'happy' | 'sad' | 'cheer';
     speech?: string;
+    inline?: boolean;
   }>(),
   {
     petType: 'cat',
     mood: 'idle',
-    speech: ''
+    speech: '',
+    inline: false
   }
 );
 </script>
 
 <template>
-  <div class="pet-companion-container" :class="[mood]">
+  <div class="pet-companion-container" :class="[mood, { 'is-inline': inline }]">
     <div v-if="speech" class="speech-bubble animate-pop-in">
       <div class="bubble-content" v-html="speech"></div>
       <div class="bubble-arrow"></div>
@@ -71,6 +73,13 @@ const props = withDefaults(
   flex-direction: column;
   align-items: center;
   pointer-events: auto;
+}
+
+.pet-companion-container.is-inline {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  z-index: auto;
 }
 
 .speech-bubble {
